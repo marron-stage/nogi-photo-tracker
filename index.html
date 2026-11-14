@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>生写真販売カウントダウン＆駿河屋サーチ</title>
+  <title>生写真販売カウントダウン</title>
   <style>
     :root {
       --primary: #7e22ce;
@@ -14,7 +14,6 @@
       --text: #1f2937;
       --muted: #6b7280;
       --border: #e5e7eb;
-      --surugaya: #004098;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -36,49 +35,6 @@
 
     .container { max-width: 820px; margin: 0 auto; padding: 16px; }
 
-    /* 推しメン絞り込みバー */
-    .oshi-bar {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-    }
-    .oshi-bar label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--primary-dark);
-      margin-bottom: 6px;
-    }
-    .oshi-input-row { display: flex; gap: 8px; }
-    .oshi-input-row input {
-      flex: 1;
-      padding: 8px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-    .preset-chips {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
-    .chip {
-      background: var(--primary-light);
-      color: var(--primary-dark);
-      border: none;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .chip:hover { background: #e9d5ff; }
-    .chip.clear { background: #f3f4f6; color: #4b5563; }
-
     .btn {
       border: none;
       border-radius: 9px;
@@ -95,8 +51,8 @@
     }
     .btn:hover { opacity: 0.9; }
     .btn-primary { background: var(--primary); color: #fff; }
+    .btn-ended { background: #6b7280; color: #fff; }
     .btn-edit-save { background: #059669; color: #fff; }
-    .btn-surugaya { background: var(--surugaya); color: #fff; width: 100%; }
     .btn-outline { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
     .btn-sm { padding: 5px 8px; font-size: 0.72rem; border-radius: 6px; }
 
@@ -148,7 +104,7 @@
     }
     .admin-export-box p { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
 
-    /* カード一覧：2列グリッド */
+    /* カード一覧：PC2列 / スマホ1列 */
     .card-list {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -177,9 +133,9 @@
       display: flex;
       flex-direction: column;
     }
-    .card.editing {
-      border: 2px solid #059669;
-    }
+    .card.editing { border: 2px solid #059669; }
+    .card.is-closed { opacity: 0.78; }
+
     .banner-wrap {
       position: relative;
       width: 100%;
@@ -223,7 +179,7 @@
       z-index: 2;
     }
     .badge-active { background: #e11d48; }
-    .badge-ended { background: var(--surugaya); }
+    .badge-ended { background: #4b5563; }
 
     .card-body {
       padding: 12px 14px;
@@ -236,6 +192,12 @@
       font-weight: 800;
       margin-bottom: 4px;
       line-height: 1.35;
+    }
+    .card-price {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 3px;
     }
     .card-meta {
       font-size: 0.74rem;
@@ -252,7 +214,12 @@
       text-align: center;
       margin-bottom: 10px;
     }
+    .countdown-box.ended {
+      background: #f3f4f6;
+      border-color: #e5e7eb;
+    }
     .countdown-label { font-size: 0.68rem; color: #be123c; font-weight: 700; }
+    .countdown-box.ended .countdown-label { color: #4b5563; }
     .countdown-time {
       font-size: 1.08rem;
       font-weight: 900;
@@ -260,27 +227,9 @@
       font-variant-numeric: tabular-nums;
       margin-top: 2px;
     }
-
-    .resale-box {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 9px;
-      padding: 10px;
-    }
-    .resale-title {
-      font-size: 0.74rem;
-      font-weight: 800;
-      color: #1e3a8a;
-      margin-bottom: 4px;
-    }
-    .search-preview {
-      font-size: 0.72rem;
-      color: #1d4ed8;
-      background: #fff;
-      padding: 4px 7px;
-      border-radius: 5px;
-      margin-bottom: 8px;
-      word-break: break-all;
+    .countdown-box.ended .countdown-time {
+      color: #4b5563;
+      font-size: 0.95rem;
     }
 
     /* 管理モード認証済み時のみ表示されるカード操作ボタン */
@@ -291,8 +240,7 @@
       border-top: 1px solid var(--border);
       padding-top: 8px;
       margin-top: 10px;
-      gap: 4px;
-      flex-wrap: wrap;
+      gap: 6px;
     }
     body.is-admin .admin-card-controls { display: flex; }
 
@@ -318,8 +266,8 @@
 <body>
 
 <header>
-  <h1>💜 生写真カウントダウン＆駿河屋サーチ</h1>
-  <p>予約締切タイマー ＆ 発売後の駿河屋在庫一発検索</p>
+  <h1>💜 生写真販売カウントダウン</h1>
+  <p>公式ショップ予約締切リアルタイムタイマー</p>
 </header>
 
 <div class="container">
@@ -345,20 +293,20 @@
         <input type="text" id="inTitle" placeholder="例：2026年11月個別生写真【クリスマス2026】" />
       </div>
       <div class="form-group">
-        <label>3. 予約締切日時 *</label>
+        <label>3. 税込価格（円・数字のみでOK）</label>
+        <input type="number" id="inPrice" placeholder="例：1200" />
+      </div>
+      <div class="form-group">
+        <label>4. 予約締切日時 *</label>
         <input type="datetime-local" id="inDeadline" />
       </div>
       <div class="form-group">
-        <label>4. お届け予定メモ（任意）</label>
+        <label>5. お届け予定メモ（任意）</label>
         <input type="text" id="inDelivery" placeholder="例：12月中旬〜下旬お届け予定" />
       </div>
       <div class="form-group">
-        <label>5. 公式ショップURL</label>
+        <label>6. 公式ショップURL</label>
         <input type="url" id="inShopUrl" value="https://www.nogizaka46shop.com/" />
-      </div>
-      <div class="form-group">
-        <label>6. 駿河屋 検索用ベースキーワード</label>
-        <input type="text" id="inKeyword" placeholder="例：乃木坂46 生写真 クリスマス2026" />
       </div>
 
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -377,24 +325,7 @@
     </div>
   </div>
 
-  <!-- 推しメン絞り込みバー -->
-  <div class="oshi-bar">
-    <label for="oshiInput">🔍 駿河屋検索に掛け合わせる推しメン名（空欄ならテーマ全体で検索）</label>
-    <div class="oshi-input-row">
-      <input type="text" id="oshiInput" placeholder="例：井上和 / 遠藤さくら / 一ノ瀬美空" oninput="renderCards()" />
-    </div>
-    <div class="preset-chips">
-      <button class="chip" onclick="setOshi('井上和')">井上和</button>
-      <button class="chip" onclick="setOshi('遠藤さくら')">遠藤さくら</button>
-      <button class="chip" onclick="setOshi('賀喜遥香')">賀喜遥香</button>
-      <button class="chip" onclick="setOshi('一ノ瀬美空')">一ノ瀬美空</button>
-      <button class="chip" onclick="setOshi('川﨑桜')">川﨑桜</button>
-      <button class="chip" onclick="setOshi('五百城茉央')">五百城茉央</button>
-      <button class="chip clear" onclick="setOshi('')">クリア</button>
-    </div>
-  </div>
-
-  <!-- カード一覧（2列グリッド） -->
+  <!-- カード一覧（締切が近い順に自動並び替え） -->
   <div class="card-list" id="cardList"></div>
 </div>
 
@@ -408,7 +339,6 @@
   let editingId = null;
 
   async function init() {
-    // 1. まず同階層の data.json（GitHub上の最新データ）を読み込み
     let loadedFromJson = false;
     try {
       const res = await fetch('./data.json?t=' + Date.now());
@@ -426,7 +356,6 @@
       items = saved ? JSON.parse(saved) : [];
     }
 
-    // 2. URLに ?admin=1 がついている場合のみパスワード認証
     const params = new URLSearchParams(location.search);
     if (params.get('admin') === '1') {
       const inputPass = prompt('管理用パスワードを入力してください：');
@@ -450,11 +379,6 @@
     t.textContent = msg;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2500);
-  }
-
-  function setOshi(name) {
-    document.getElementById('oshiInput').value = name;
-    renderCards();
   }
 
   function handleImageFile(e) {
@@ -496,12 +420,11 @@
     document.getElementById('cancelEditBtn').style.display = 'inline-flex';
 
     document.getElementById('inTitle').value = target.title || '';
+    document.getElementById('inPrice').value = target.price || '';
     document.getElementById('inDeadline').value = target.deadline || '';
     document.getElementById('inDelivery').value = target.delivery || '';
     document.getElementById('inShopUrl').value = target.shopUrl || 'https://www.nogizaka46shop.com/';
-    document.getElementById('inKeyword').value = target.keyword || '';
 
-    // 既存画像プレビュー表示
     compressedBase64 = '';
     document.getElementById('inFile').value = '';
     const prev = document.getElementById('previewImg');
@@ -541,19 +464,19 @@
     document.getElementById('previewImg').style.display = 'none';
     document.getElementById('inBannerUrl').value = '';
     document.getElementById('inTitle').value = '';
+    document.getElementById('inPrice').value = '';
     document.getElementById('inDeadline').value = '';
     document.getElementById('inDelivery').value = '';
     document.getElementById('inShopUrl').value = 'https://www.nogizaka46shop.com/';
-    document.getElementById('inKeyword').value = '';
   }
 
   function saveItem() {
     const title = document.getElementById('inTitle').value.trim();
+    const price = document.getElementById('inPrice').value.trim();
     const bannerUrlInput = document.getElementById('inBannerUrl').value.trim();
     const deadline = document.getElementById('inDeadline').value;
     const delivery = document.getElementById('inDelivery').value.trim();
     const shopUrl = document.getElementById('inShopUrl').value.trim() || 'https://www.nogizaka46shop.com/';
-    const keyword = document.getElementById('inKeyword').value.trim() || title;
 
     if (!title || !deadline) {
       alert('タイトルと予約締切日時は必須です！');
@@ -568,11 +491,11 @@
         items[idx] = {
           ...items[idx],
           title,
+          price,
           banner: newBanner,
           deadline,
           delivery,
-          shopUrl,
-          keyword
+          shopUrl
         };
       }
       editingId = null;
@@ -582,29 +505,19 @@
       showToast('修正を反映しました！忘れずに data.json を保存してください');
     } else {
       const banner = compressedBase64 || bannerUrlInput;
-      items.unshift({
+      items.push({
         id: 'item-' + Date.now(),
         title,
+        price,
         banner,
         deadline,
         delivery,
-        shopUrl,
-        keyword,
-        forceResale: false
+        shopUrl
       });
       resetForm();
       saveLocal();
       renderCards();
       showToast('追加しました！忘れずに data.json を保存してください');
-    }
-  }
-
-  function toggleMode(id) {
-    const target = items.find(i => i.id === id);
-    if (target) {
-      target.forceResale = !target.forceResale;
-      saveLocal();
-      renderCards();
     }
   }
 
@@ -626,7 +539,9 @@
   }
 
   function downloadJson() {
-    const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+    // 並び順も締切が早い順に整えて書き出し
+    const sorted = getSortedItems();
+    const blob = new Blob([JSON.stringify(sorted, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -637,7 +552,7 @@
   }
 
   function formatCountdown(ms) {
-    if (ms <= 0) return '受付終了';
+    if (ms <= 0) return '予約受付終了';
     const totalSec = Math.floor(ms / 1000);
     const d = Math.floor(totalSec / 86400);
     const h = Math.floor((totalSec % 86400) / 3600);
@@ -646,69 +561,76 @@
     return `あと ${d}日 ${String(h).padStart(2,'0')}時間 ${String(m).padStart(2,'0')}分 ${String(s).padStart(2,'0')}秒`;
   }
 
+  function formatPrice(priceVal) {
+    if (!priceVal) return '';
+    const num = Number(String(priceVal).replace(/,/g, ''));
+    if (!isNaN(num) && num > 0) {
+      return `¥${num.toLocaleString()}（税込）`;
+    }
+    return `${priceVal}（税込）`;
+  }
+
+  // 締切が早い順にソート（販売中のものを上にし、その中では締切が近い順／終了済みのものは下へ）
+  function getSortedItems() {
+    const now = Date.now();
+    return [...items].sort((a, b) => {
+      const timeA = new Date(a.deadline).getTime();
+      const timeB = new Date(b.deadline).getTime();
+      const activeA = timeA > now;
+      const activeB = timeB > now;
+
+      if (activeA && !activeB) return -1;
+      if (!activeA && activeB) return 1;
+      if (activeA && activeB) return timeA - timeB; // 受付中は締切が早い順
+      return timeB - timeA; // 終了済みは直近で終わった順
+    });
+  }
+
   function renderCards() {
     const list = document.getElementById('cardList');
-    const oshi = document.getElementById('oshiInput').value.trim();
     const now = Date.now();
+    const sortedItems = getSortedItems();
 
-    if (items.length === 0) {
+    if (sortedItems.length === 0) {
       list.innerHTML = `<div class="empty-state">現在登録されている生写真はありません。</div>`;
       return;
     }
 
-    list.innerHTML = items.map(item => {
+    list.innerHTML = sortedItems.map(item => {
       const endMs = new Date(item.deadline).getTime();
       const diff = endMs - now;
-      const isEnded = item.forceResale || diff <= 0;
-
-      const fullQuery = [item.keyword, oshi].filter(Boolean).join(' ');
-      const encQuery = encodeURIComponent(fullQuery);
-      const surugayaUrl = `https://www.suruga-ya.jp/search?category=&search_word=${encQuery}`;
+      const isEnded = diff <= 0;
 
       const bannerHtml = item.banner
         ? `<img src="${item.banner}" alt="${item.title}" />`
         : `<div class="banner-placeholder">${item.title}</div>`;
 
-      const mainSection = !isEnded
-        ? `
-          <div class="countdown-box">
-            <div class="countdown-label">🔥 締切：${item.deadline.replace('T', ' ')}</div>
-            <div class="countdown-time" data-deadline="${endMs}">${formatCountdown(diff)}</div>
-          </div>
-          <a href="${item.shopUrl}" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%;">
-            🛒 公式ショップで購入ページを開く
-          </a>
-        `
-        : `
-          <div class="resale-box">
-            <div class="resale-title">📦 駿河屋 二次流通・在庫サーチ</div>
-            <div class="search-preview">検索：<strong>${fullQuery}</strong></div>
-            <a href="${surugayaUrl}" target="_blank" rel="noopener" class="btn btn-surugaya">
-              🔍 駿河屋で在庫・相場を検索
-            </a>
-          </div>
-        `;
+      const priceText = formatPrice(item.price);
 
       return `
-        <div class="card ${editingId === item.id ? 'editing' : ''}">
+        <div class="card ${editingId === item.id ? 'editing' : ''} ${isEnded ? 'is-closed' : ''}">
           <div class="banner-wrap">
             <span class="status-badge ${isEnded ? 'badge-ended' : 'badge-active'}">
-              ${isEnded ? '駿河屋サーチ中' : '予約受付中'}
+              ${isEnded ? '受付終了' : '予約受付中'}
             </span>
             ${bannerHtml}
           </div>
           <div class="card-body">
             <div class="card-title">${item.title}</div>
+            ${priceText ? `<div class="card-price">${priceText}</div>` : ''}
             ${item.delivery ? `<div class="card-meta">お届け目安：${item.delivery}</div>` : ''}
             <div class="card-action-area">
-              ${mainSection}
+              <div class="countdown-box ${isEnded ? 'ended' : ''}">
+                <div class="countdown-label">${isEnded ? '締切日時' : '🔥 締切'}：${item.deadline.replace('T', ' ')}</div>
+                <div class="countdown-time" data-deadline="${endMs}">${formatCountdown(diff)}</div>
+              </div>
+              <a href="${item.shopUrl}" target="_blank" rel="noopener" class="btn ${isEnded ? 'btn-ended' : 'btn-primary'}" style="width:100%;">
+                🛒 公式ショップページを開く
+              </a>
             </div>
             <div class="admin-card-controls">
               <button class="btn btn-outline btn-sm" onclick="startEdit('${item.id}')">
                 ✏️ 編集
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="toggleMode('${item.id}')">
-                🔄 ${isEnded ? 'タイマーに戻す' : '駿河屋に切替'}
               </button>
               <button class="btn btn-sm" style="background:#fee2e2; color:#b91c1c;" onclick="deleteItem('${item.id}')">
                 削除
@@ -725,9 +647,9 @@
     document.querySelectorAll('.countdown-time').forEach(el => {
       const endMs = Number(el.dataset.deadline);
       const diff = endMs - now;
-      if (diff <= 0) {
+      if (diff <= 0 && !el.closest('.countdown-box').classList.contains('ended')) {
         renderCards();
-      } else {
+      } else if (diff > 0) {
         el.textContent = formatCountdown(diff);
       }
     });
