@@ -95,11 +95,12 @@
     }
     .btn:hover { opacity: 0.9; }
     .btn-primary { background: var(--primary); color: #fff; }
+    .btn-edit-save { background: #059669; color: #fff; }
     .btn-surugaya { background: var(--surugaya); color: #fff; width: 100%; }
     .btn-outline { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
-    .btn-sm { padding: 5px 9px; font-size: 0.72rem; border-radius: 6px; }
+    .btn-sm { padding: 5px 8px; font-size: 0.72rem; border-radius: 6px; }
 
-    /* 管理画面パネル */
+    /* 管理画面パネル（?admin=1 + パスワード認証時のみ表示） */
     .admin-panel {
       display: none;
       background: #fff;
@@ -147,16 +148,14 @@
     }
     .admin-export-box p { font-size: 0.75rem; color: var(--muted); margin-bottom: 8px; }
 
-    /* カード一覧：2列グリッド（スマホ狭い画面のみ1列） */
+    /* カード一覧：2列グリッド */
     .card-list {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 14px;
     }
     @media (max-width: 540px) {
-      .card-list {
-        grid-template-columns: 1fr;
-      }
+      .card-list { grid-template-columns: 1fr; }
     }
 
     .empty-state {
@@ -178,7 +177,9 @@
       display: flex;
       flex-direction: column;
     }
-    /* 1:1（1040x1040）の画像を切らずに全体表示する枠 */
+    .card.editing {
+      border: 2px solid #059669;
+    }
     .banner-wrap {
       position: relative;
       width: 100%;
@@ -241,11 +242,8 @@
       color: var(--muted);
       margin-bottom: 10px;
     }
-    .card-action-area {
-      margin-top: auto;
-    }
+    .card-action-area { margin-top: auto; }
 
-    /* カウントダウンボックス */
     .countdown-box {
       background: #fff1f2;
       border: 1px solid #fecdd3;
@@ -263,7 +261,6 @@
       margin-top: 2px;
     }
 
-    /* 駿河屋サーチボックス */
     .resale-box {
       background: #eff6ff;
       border: 1px solid #bfdbfe;
@@ -286,7 +283,7 @@
       word-break: break-all;
     }
 
-    /* 管理モード時のみ出るフッター */
+    /* 管理モード認証済み時のみ表示されるカード操作ボタン */
     .admin-card-controls {
       display: none;
       justify-content: space-between;
@@ -294,22 +291,10 @@
       border-top: 1px solid var(--border);
       padding-top: 8px;
       margin-top: 10px;
-      gap: 6px;
+      gap: 4px;
+      flex-wrap: wrap;
     }
     body.is-admin .admin-card-controls { display: flex; }
-
-    .footer-admin-toggle {
-      text-align: center;
-      margin-top: 32px;
-    }
-    .footer-admin-toggle button {
-      background: none;
-      border: none;
-      color: #9ca3af;
-      font-size: 0.75rem;
-      cursor: pointer;
-      text-decoration: underline;
-    }
 
     .toast {
       position: fixed;
@@ -338,16 +323,16 @@
 </header>
 
 <div class="container">
-  <!-- 管理画面 -->
+  <!-- 管理画面（?admin=1 かつパスワード 4648 認証時のみ表示） -->
   <div class="admin-panel" id="adminPanel">
     <div class="admin-header">
-      <h2>🛠️ 管理画面（アイテム登録・データ書き出し）</h2>
-      <button class="btn btn-sm" style="background:#f3f4f6;" onclick="toggleAdmin(false)">閉じる</button>
+      <h2 id="formHeading">🛠️ 管理画面（新規アイテム登録）</h2>
+      <span style="font-size:0.75rem; color:#059669; font-weight:700;">認証済み</span>
     </div>
 
     <div class="form-grid">
       <div class="form-group">
-        <label>1. バナー画像を選択（1040×1040正方形そのまま表示されます）</label>
+        <label>1. バナー画像を選択（1040×1040正方形そのまま表示）</label>
         <input type="file" id="inFile" accept="image/*" onchange="handleImageFile(event)" />
         <img id="previewImg" class="preview-thumb" alt="プレビュー" />
       </div>
@@ -375,12 +360,16 @@
         <label>6. 駿河屋 検索用ベースキーワード</label>
         <input type="text" id="inKeyword" placeholder="例：乃木坂46 生写真 クリスマス2026" />
       </div>
-      <button class="btn btn-primary" onclick="addItem()">＋ この内容で追加する</button>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="submitBtn" onclick="saveItem()">＋ この内容で追加する</button>
+        <button class="btn btn-outline" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">編集をキャンセル</button>
+      </div>
     </div>
 
     <div class="admin-export-box">
-      <p><strong>📤 友達に公開する方法（GitHub反映用）：</strong><br>
-      下のボタンで <code>data.json</code> をダウンロードし、GitHubの <code>index.html</code> と同じ場所にドラッグ＆ドロップでアップロードすると、バナー画像ごと全員の画面に反映されます！</p>
+      <p><strong>📤 GitHub反映手順：</strong><br>
+      追加・修正が終わったら下のボタンで <code>data.json</code> をダウンロードし、GitHubにドラッグ＆ドロップで上書きアップロードしてください。</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn btn-outline btn-sm" onclick="downloadJson()">💾 GitHub用 data.json を保存</button>
         <button class="btn btn-outline btn-sm" onclick="clearAllItems()" style="color:#dc2626; border-color:#dc2626;">全件リセット</button>
@@ -407,40 +396,48 @@
 
   <!-- カード一覧（2列グリッド） -->
   <div class="card-list" id="cardList"></div>
-
-  <!-- 管理画面スイッチ -->
-  <div class="footer-admin-toggle">
-    <button onclick="toggleAdmin(true)">管理画面を開く</button>
-  </div>
 </div>
 
 <div class="toast" id="toast">完了しました！</div>
 
 <script>
+  const ADMIN_PASS = '4648';
   const STORAGE_KEY = 'nogi_photo_admin_v2';
   let items = [];
   let compressedBase64 = '';
+  let editingId = null;
 
   async function init() {
-    const params = new URLSearchParams(location.search);
-    if (params.get('admin') === '1') {
-      toggleAdmin(true);
-    }
-
+    // 1. まず同階層の data.json（GitHub上の最新データ）を読み込み
+    let loadedFromJson = false;
     try {
       const res = await fetch('./data.json?t=' + Date.now());
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json)) {
           items = json;
-          renderCards();
-          return;
+          loadedFromJson = true;
         }
       }
     } catch (e) {}
 
-    const saved = localStorage.getItem(STORAGE_KEY);
-    items = saved ? JSON.parse(saved) : [];
+    if (!loadedFromJson) {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      items = saved ? JSON.parse(saved) : [];
+    }
+
+    // 2. URLに ?admin=1 がついている場合のみパスワード認証
+    const params = new URLSearchParams(location.search);
+    if (params.get('admin') === '1') {
+      const inputPass = prompt('管理用パスワードを入力してください：');
+      if (inputPass === ADMIN_PASS) {
+        document.getElementById('adminPanel').classList.add('open');
+        document.body.classList.add('is-admin');
+      } else if (inputPass !== null) {
+        alert('パスワードが違います。閲覧モードで表示します。');
+      }
+    }
+
     renderCards();
   }
 
@@ -448,23 +445,11 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }
 
-  function toggleAdmin(show) {
-    const panel = document.getElementById('adminPanel');
-    if (show) {
-      panel.classList.add('open');
-      document.body.classList.add('is-admin');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      panel.classList.remove('open');
-      document.body.classList.remove('is-admin');
-    }
-  }
-
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2400);
+    setTimeout(() => t.classList.remove('show'), 2500);
   }
 
   function setOshi(name) {
@@ -499,9 +484,72 @@
     reader.readAsDataURL(file);
   }
 
-  function addItem() {
+  function startEdit(id) {
+    const target = items.find(i => i.id === id);
+    if (!target) return;
+
+    editingId = id;
+    document.getElementById('formHeading').textContent = '✏️ アイテムを編集中...';
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.textContent = '✔ 変更内容を保存する';
+    submitBtn.className = 'btn btn-edit-save';
+    document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+
+    document.getElementById('inTitle').value = target.title || '';
+    document.getElementById('inDeadline').value = target.deadline || '';
+    document.getElementById('inDelivery').value = target.delivery || '';
+    document.getElementById('inShopUrl').value = target.shopUrl || 'https://www.nogizaka46shop.com/';
+    document.getElementById('inKeyword').value = target.keyword || '';
+
+    // 既存画像プレビュー表示
+    compressedBase64 = '';
+    document.getElementById('inFile').value = '';
+    const prev = document.getElementById('previewImg');
+    if (target.banner && target.banner.startsWith('data:')) {
+      document.getElementById('inBannerUrl').value = '';
+      prev.src = target.banner;
+      prev.style.display = 'block';
+    } else {
+      document.getElementById('inBannerUrl').value = target.banner || '';
+      if (target.banner) {
+        prev.src = target.banner;
+        prev.style.display = 'block';
+      } else {
+        prev.style.display = 'none';
+      }
+    }
+
+    renderCards();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelEdit() {
+    editingId = null;
+    resetForm();
+    renderCards();
+  }
+
+  function resetForm() {
+    document.getElementById('formHeading').textContent = '🛠️ 管理画面（新規アイテム登録）';
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.textContent = '＋ この内容で追加する';
+    submitBtn.className = 'btn btn-primary';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+
+    compressedBase64 = '';
+    document.getElementById('inFile').value = '';
+    document.getElementById('previewImg').style.display = 'none';
+    document.getElementById('inBannerUrl').value = '';
+    document.getElementById('inTitle').value = '';
+    document.getElementById('inDeadline').value = '';
+    document.getElementById('inDelivery').value = '';
+    document.getElementById('inShopUrl').value = 'https://www.nogizaka46shop.com/';
+    document.getElementById('inKeyword').value = '';
+  }
+
+  function saveItem() {
     const title = document.getElementById('inTitle').value.trim();
-    const banner = compressedBase64 || document.getElementById('inBannerUrl').value.trim();
+    const bannerUrlInput = document.getElementById('inBannerUrl').value.trim();
     const deadline = document.getElementById('inDeadline').value;
     const delivery = document.getElementById('inDelivery').value.trim();
     const shopUrl = document.getElementById('inShopUrl').value.trim() || 'https://www.nogizaka46shop.com/';
@@ -512,28 +560,43 @@
       return;
     }
 
-    items.unshift({
-      id: 'item-' + Date.now(),
-      title,
-      banner,
-      deadline,
-      delivery,
-      shopUrl,
-      keyword,
-      forceResale: false
-    });
-
-    compressedBase64 = '';
-    document.getElementById('inFile').value = '';
-    document.getElementById('previewImg').style.display = 'none';
-    document.getElementById('inBannerUrl').value = '';
-    document.getElementById('inTitle').value = '';
-    document.getElementById('inDelivery').value = '';
-    document.getElementById('inKeyword').value = '';
-
-    saveLocal();
-    renderCards();
-    showToast('追加しました！（GitHub反映には data.json を保存してください）');
+    if (editingId) {
+      const idx = items.findIndex(i => i.id === editingId);
+      if (idx !== -1) {
+        const oldBanner = items[idx].banner;
+        const newBanner = compressedBase64 || bannerUrlInput || oldBanner;
+        items[idx] = {
+          ...items[idx],
+          title,
+          banner: newBanner,
+          deadline,
+          delivery,
+          shopUrl,
+          keyword
+        };
+      }
+      editingId = null;
+      resetForm();
+      saveLocal();
+      renderCards();
+      showToast('修正を反映しました！忘れずに data.json を保存してください');
+    } else {
+      const banner = compressedBase64 || bannerUrlInput;
+      items.unshift({
+        id: 'item-' + Date.now(),
+        title,
+        banner,
+        deadline,
+        delivery,
+        shopUrl,
+        keyword,
+        forceResale: false
+      });
+      resetForm();
+      saveLocal();
+      renderCards();
+      showToast('追加しました！忘れずに data.json を保存してください');
+    }
   }
 
   function toggleMode(id) {
@@ -547,6 +610,7 @@
 
   function deleteItem(id) {
     if (!confirm('この項目を削除しますか？')) return;
+    if (editingId === id) cancelEdit();
     items = items.filter(i => i.id !== id);
     saveLocal();
     renderCards();
@@ -554,6 +618,8 @@
 
   function clearAllItems() {
     if (!confirm('登録データをすべて空にしますか？')) return;
+    editingId = null;
+    resetForm();
     items = [];
     saveLocal();
     renderCards();
@@ -567,7 +633,7 @@
     a.download = 'data.json';
     a.click();
     URL.revokeObjectURL(url);
-    showToast('data.json をダウンロードしました！GitHubにアップしてください');
+    showToast('data.json を保存しました！GitHubにアップしてください');
   }
 
   function formatCountdown(ms) {
@@ -586,7 +652,7 @@
     const now = Date.now();
 
     if (items.length === 0) {
-      list.innerHTML = `<div class="empty-state">まだ生写真が登録されていません。<br>下の「管理画面を開く」からバナー画像と情報を登録してください！</div>`;
+      list.innerHTML = `<div class="empty-state">現在登録されている生写真はありません。</div>`;
       return;
     }
 
@@ -624,7 +690,7 @@
         `;
 
       return `
-        <div class="card">
+        <div class="card ${editingId === item.id ? 'editing' : ''}">
           <div class="banner-wrap">
             <span class="status-badge ${isEnded ? 'badge-ended' : 'badge-active'}">
               ${isEnded ? '駿河屋サーチ中' : '予約受付中'}
@@ -638,6 +704,9 @@
               ${mainSection}
             </div>
             <div class="admin-card-controls">
+              <button class="btn btn-outline btn-sm" onclick="startEdit('${item.id}')">
+                ✏️ 編集
+              </button>
               <button class="btn btn-outline btn-sm" onclick="toggleMode('${item.id}')">
                 🔄 ${isEnded ? 'タイマーに戻す' : '駿河屋に切替'}
               </button>
